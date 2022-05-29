@@ -104,19 +104,22 @@ function main() {
 
 	{
 		let curDayId = 0;
-		let lastTaskEndTime = 0;
+		let hoursLeftInCurDay = 8;
 
 		for (const taskId in tasks) {
-			let workLeft = tasks[taskId];
 			tasks[taskId] = {begin: workingDays[curDayId], duration: tasks[taskId]};
+			let workLeft = tasks[taskId].duration;
 
 			while (workLeft > 0) {
-				workLeft -= (8 - lastTaskEndTime);
-				curDayId++;
-				lastTaskEndTime = 0;
+				if (workLeft > hoursLeftInCurDay) {
+					workLeft -= hoursLeftInCurDay;
+					hoursLeftInCurDay = 8;
+					curDayId++;
+				} else {
+					hoursLeftInCurDay -= workLeft;
+					workLeft = 0;
+				}
 			}
-
-			lastTaskEndTime = -workLeft;
 		}
 
 		for (const taskId in tasks) {
