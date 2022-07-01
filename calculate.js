@@ -52,8 +52,9 @@ function main() {
 	// Формируем массив рабочих дней:
 	const workingDays = [];
 	let currentDay = interval.start;
+	let _finiteCounter = 0;
 
-	while(currentDay !== interval.end) {
+	while(true) {
 		const curDate = convertToDate(currentDay);
 
 		let working = false;
@@ -71,6 +72,11 @@ function main() {
 
 		if (working) {
 			workingDays.push(currentDay);
+		}
+
+		_finiteCounter++;
+		if (currentDay === interval.end || _finiteCounter > 365) {
+			break;
 		}
 
 		let nextDay = new Date(curDate.getTime() + 24 * 60 * 60 * 1000).toLocaleString().split(',')[0];
@@ -122,8 +128,22 @@ function main() {
 			}
 		}
 
+		function formatDuration(dur) {
+			const rest = dur % 8;
+			let result = '';
+			for (let i = 0; i < Math.floor(dur/8); i++) {
+				result += '8 ';
+			}
+
+			if (rest > 0) {
+				result += rest;
+			}
+
+			return result.trim();
+		}
+
 		for (const taskId in tasks) {
-			console.log(`${taskId}, begin: ${tasks[taskId].begin}, duration: ${tasks[taskId].duration}`);
+			console.log(`${taskId}, begin: ${tasks[taskId].begin}, duration: ${formatDuration(tasks[taskId].duration)}`);
 		}
 	}
 }
