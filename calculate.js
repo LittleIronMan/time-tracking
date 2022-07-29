@@ -1,7 +1,7 @@
 // На выходе должно быть: задача, дата начала, время выполнения
 
 // Находим будние дни за этот промежуток времени. Включительно
-const interval = {start: '29.04.2022', end: '29.05.2022'};
+const interval = {start: '1.07.2022', end: '31.07.2022'};
 
 // Исключаем праздники
 const holidays = [
@@ -14,11 +14,20 @@ const holidays = [
 	'08.05.2022',
 	'09.05.2022',
 	'10.05.2022',
+
+	// Бессонница
+	'13.07.2022',
+	'14.07.2022',
+	'15.07.2022',
+	'16.07.2022',
+	'17.07.2022',
+	'18.07.2022',
+	'19.07.2022',
 ];
 
 // Распределяем время задачам исходя из их сложности. Сложность указывается в степени двойки
 // Думаю что проще будет посмотреть по истории коммитов. Уверен что в gitlab'е так можно
-const tasks = {
+const tasks_may = {
 	// NSUUIWEB-249 Лимиты в числовых input'ах в формах Survey FlightElement'ов
 	// NSUUIWEB-249 wip попытка устранить "моргание" величины в полях ввода
 	// NSUUIWEB-249 убрал throttle'ы
@@ -40,6 +49,18 @@ const tasks = {
 	'NSUUIWEB-345': 1, // NSUUIWEB-345 Починил переключение количества коптеров
 	'NSUUIWEB-346': 1, // NSUUIWEB-346 Избавиться от прокси dev-сервера
 };
+
+const tasks = {
+	'NSUUIWEB-389': 2, // Оффлайн сервер тайлов
+	'NSUUIWEB-375': 1, // Переключение показометров
+	'NSUUIWEB-409': 1, // Обновить api-шку
+	'NSUUIWEB-367': 1, // Очистка буфера видео
+	'NSUUIWEB-413': 3, // Управление gir-головой
+	'NSUUIWEB-423': 3, // Перенести api в submodule
+	'NSUUIWEB-424': 3, // WASM декодер
+	'NSUUIWEB-425': 3, // Предполетка
+	'NSUUIWEB-427': 1, // ревьюхи, мелкие правки
+}
 
 function convertToDate(str) {
 	//  Convert a "DD.MM.YYYY" string into a Date object
@@ -104,6 +125,38 @@ function main() {
 	for (const taskId in tasks) {
 		tasks[taskId] = Math.round(tasks[taskId] * coef);
 		dirty_totalVirtualHours += tasks[taskId];
+	}
+
+	if (true/* Округление до 4-х, можно выключить */) {
+		let err = dirty_totalVirtualHours - totalRealHours;
+
+		for (const taskId in tasks) {
+			// Количество затраченных часов чтобы было кратно 4-м часам
+			const rounded4 = Math.max(1, Math.round(tasks[taskId] / 4)) * 4;
+			err += rounded4 - tasks[taskId];
+			tasks[taskId] = rounded4;
+		}
+
+		// Избавляемся от лишних/недостающих часов путем их вычета/добавления к самым большим задачам
+		while (Math.abs(err) > 2) {
+			const sign = Math.sign(err);
+
+			let taskIds = Object.keys(tasks);
+			taskIds = taskIds.filter(id => (tasks[id] % 8)); // Находим задачи, которые не кратны 8 часам. Назовем их "грязными"
+
+			if (taskIds.length == 0) {
+				taskIds = Object.keys(tasks);
+			}
+
+			taskIds = taskIds.sort((a, b) => tasks[b] - tasks[a]); // Сортируем "грязные" задачи по убыванию времени (т.е. находим самые большие)
+			const bigTaskId = taskIds[0];
+
+			const step = sign * 4/*(Math.abs(err) >= 8 ? 8 : 4)*/;
+			tasks[bigTaskId] -= step;
+			err -= step;
+		}
+
+		dirty_totalVirtualHours = totalRealHours + err;
 	}
 
 	console.log(`С учетом округления времени задач - суммарно "грязных" часов = ${dirty_totalVirtualHours}, для сравнения "чистых" = ${totalRealHours}`);
