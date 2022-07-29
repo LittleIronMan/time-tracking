@@ -142,7 +142,7 @@ function main() {
 			const sign = Math.sign(err);
 
 			let taskIds = Object.keys(tasks);
-			taskIds = taskIds.filter(id => (tasks[id] % 8)); // Находим задачи, которые не кратны 8 часам. Назовем их "грязными"
+			taskIds = taskIds.filter(id => (tasks[id] % 8) && (tasks[id] > 8)); // Находим задачи, которые не кратны 8 часам. Назовем их "грязными"
 
 			if (taskIds.length == 0) {
 				taskIds = Object.keys(tasks);
