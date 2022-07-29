@@ -170,7 +170,7 @@ function main() {
 			let workLeft = tasks[taskId].duration;
 
 			while (workLeft > 0) {
-				if (workLeft > hoursLeftInCurDay) {
+				if (workLeft >= hoursLeftInCurDay) {
 					workLeft -= hoursLeftInCurDay;
 					hoursLeftInCurDay = 8;
 					curDayId++;
